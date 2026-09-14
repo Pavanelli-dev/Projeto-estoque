@@ -19,6 +19,17 @@ HTML, CSS, JavaScript, Node.js/Express e SQLite via sql.js.
 
 ## Executar
 ```bash
+ npm install express 
+
+    npm install sql.js 
+
+    npm install jsonwebtoken 
+
+    npm install bcryptjs
+
+    npm install cors 
+
+    npm install dotenv
 npm install
 node seed.js
 node index.js
