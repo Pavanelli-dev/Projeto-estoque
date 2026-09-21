@@ -1,11 +1,539 @@
-<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Almoxarifado</title><link rel="stylesheet" href="style.css"></head><body>
-<div id="tela-login"><div class="login-box"><div class="login-logo"><span class="em">📦</span><h1>Almoxarifado</h1><p>Sistema de Gestão de Estoque</p></div><div id="login-erro" class="login-erro"></div><label>E-mail</label><input id="l-email" type="email" placeholder="admin@email.com"><label>Senha</label><input id="l-senha" type="password" placeholder="••••••"><button id="btn-login" class="btn btn-main" onclick="fazerLogin()">Entrar</button><p class="hint">Login de teste: <strong>admin@email.com</strong> / <strong>123456</strong></p></div></div>
-<div id="app"><aside id="sidebar"><div class="sb-logo"><h1>📦 Almoxarifado</h1><div><span class="tag" id="sb-perfil">—</span><span id="sb-nome">—</span></div></div><nav><div class="sb-group">Geral</div><button class="nav-btn ativo" onclick="ir('dashboard',this)">📊 <span>Dashboard</span></button><button class="nav-btn" onclick="ir('estoque',this)">📦 <span>Estoque</span></button><button class="nav-btn" onclick="ir('movimentacoes',this)">🔄 <span>Movimentações</span></button><div class="sb-group">Cadastros</div><button class="nav-btn" onclick="ir('produtos',this)">🗃️ <span>Produtos</span></button><button id="btn-usuarios" class="nav-btn" onclick="ir('usuarios',this)" style="display:none">🔐 <span>Usuários</span></button></nav><div class="sb-footer"><span>Almoxarifado v1.0</span><button onclick="sair()">Sair</button></div></aside>
-<main id="conteudo"><section id="pg-dashboard" class="secao ativa"><div class="pg-header"><div><h2>Dashboard</h2><p>Visão geral do almoxarifado</p></div><button class="btn btn-ghost" onclick="carregarDashboard()">↻ Atualizar</button></div><div class="stats-grid"><div class="stat"><span>📦</span><div class="lbl">Produtos</div><div class="val" id="s-produtos">—</div></div><div class="stat"><span>📊</span><div class="lbl">Itens em estoque</div><div class="val" id="s-itens">—</div></div><div class="stat"><span>⚠️</span><div class="lbl">Estoque baixo</div><div class="val" id="s-baixo">—</div></div></div><div class="card"><div class="card-head"><h3>Alertas de estoque</h3></div><div class="card-body" id="dash-alertas"></div></div></section>
-<section id="pg-produtos" class="secao"><div class="pg-header"><div><h2>Produtos</h2><p>Cadastro dos materiais do almoxarifado</p></div><button class="btn btn-main" onclick="abrirProduto()">+ Novo produto</button></div><input id="busca-produto" class="busca" placeholder="Buscar por nome, categoria ou código" oninput="carregarProdutos()"><div class="card"><div class="card-body tbl-wrap" id="tbl-produtos"></div></div></section>
-<section id="pg-estoque" class="secao"><div class="pg-header"><div><h2>Estoque</h2><p>Consulte as quantidades atuais e os níveis mínimos</p></div></div><div class="card"><div class="card-body tbl-wrap" id="tbl-estoque"></div></div></section>
-<section id="pg-movimentacoes" class="secao"><div class="pg-header"><div><h2>Movimentações</h2><p>Registre entradas e saídas de materiais</p></div><button class="btn btn-main" onclick="abrirMovimentacao()">+ Nova movimentação</button></div><div class="card"><div class="card-body tbl-wrap" id="tbl-movimentacoes"></div></div></section>
-<section id="pg-usuarios" class="secao"><div class="pg-header"><div><h2>Usuários</h2><p>Usuários cadastrados no sistema</p></div></div><div class="card"><div class="card-body tbl-wrap" id="tbl-usuarios"></div></div></section></main></div>
-<div id="m-produto" class="modal-bg"><div class="modal"><h3 id="produto-titulo">Novo produto</h3><input type="hidden" id="produto-id"><label>Nome</label><input id="produto-nome"><label>Categoria</label><input id="produto-categoria"><label>Código</label><input id="produto-codigo"><label>Unidade</label><input id="produto-unidade" value="un"><label>Quantidade</label><input id="produto-quantidade" type="number" min="0"><label>Estoque mínimo</label><input id="produto-minimo" type="number" min="0"><label>Localização</label><input id="produto-localizacao" placeholder="Ex.: Prateleira A1"><div class="modal-actions"><button class="btn btn-ghost" onclick="fechar('m-produto')">Cancelar</button><button class="btn btn-main" onclick="salvarProduto()">Salvar</button></div></div></div>
-<div id="m-mov" class="modal-bg"><div class="modal"><h3>Nova movimentação</h3><label>Produto</label><select id="mov-produto"></select><label>Tipo</label><select id="mov-tipo"><option value="entrada">Entrada</option><option value="saida">Saída</option></select><label>Quantidade</label><input id="mov-qtd" type="number" min="1"><label>Observação</label><input id="mov-obs" placeholder="Ex.: Compra, retirada, reposição..."><div class="modal-actions"><button class="btn btn-ghost" onclick="fechar('m-mov')">Cancelar</button><button class="btn btn-main" onclick="salvarMovimentacao()">Registrar</button></div></div></div>
-<div id="toast"></div><script src="script.js"></script></body></html>
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Almoxarifado</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- TELA DE LOGIN -->
+    <div id="tela-login">
+        <div class="login-box">
+
+            <div class="login-logo">
+                <span class="em">📦</span>
+                <h1>Almoxarifado</h1>
+                <p>Sistema de Gestão de Estoque</p>
+            </div>
+
+            <div id="login-erro" class="login-erro"></div>
+
+            <label>E-mail</label>
+            <input
+                id="l-email"
+                type="email"
+                placeholder="admin@email.com"
+            >
+
+            <label>Senha</label>
+            <input
+                id="l-senha"
+                type="password"
+                placeholder="••••••"
+            >
+
+            <button
+                id="btn-login"
+                class="btn btn-main"
+                onclick="fazerLogin()"
+            >
+                Entrar
+            </button>
+
+            <p class="hint">
+                Login de teste:
+                <strong>admin@email.com</strong> /
+                <strong>123456</strong>
+            </p>
+
+        </div>
+    </div>
+
+
+    <!-- APLICAÇÃO -->
+    <div id="app">
+
+        <!-- SIDEBAR -->
+        <aside id="sidebar">
+
+            <div class="sb-logo">
+                <h1> Almoxarifado</h1>
+
+                <div>
+                    <span class="tag" id="sb-perfil">—</span>
+                    <span id="sb-nome">—</span>
+                </div>
+            </div>
+
+
+            <!-- MENU -->
+            <nav>
+
+                <div class="sb-group">
+                    Geral
+                </div>
+
+                <button
+                    class="nav-btn ativo"
+                    onclick="ir('dashboard',this)"
+                >
+                     <span>Dashboard</span>
+                </button>
+
+                <button
+                    class="nav-btn"
+                    onclick="ir('estoque',this)"
+                >
+                     <span>Estoque</span>
+                </button>
+
+                <button
+                    class="nav-btn"
+                    onclick="ir('movimentacoes',this)"
+                >
+                     <span>Movimentações</span>
+                </button>
+
+
+                <div class="sb-group">
+                    Cadastros
+                </div>
+
+                <button
+                    class="nav-btn"
+                    onclick="ir('produtos',this)"
+                >
+                     <span>Produtos</span>
+                </button>
+
+                <button
+                    id="btn-usuarios"
+                    class="nav-btn"
+                    onclick="ir('usuarios',this)"
+                    style="display:none"
+                >
+                     <span>Usuários</span>
+                </button>
+
+            </nav>
+
+
+            <!-- RODAPÉ DA SIDEBAR -->
+            <div class="sb-footer">
+                <span>Almoxarifado v1.0</span>
+
+                <button onclick="sair()">
+                    Sair
+                </button>
+            </div>
+
+        </aside>
+
+
+        <!-- CONTEÚDO -->
+        <main id="conteudo">
+
+
+            <!-- DASHBOARD -->
+            <section
+                id="pg-dashboard"
+                class="secao ativa"
+            >
+
+                <div class="pg-header">
+
+                    <div>
+                        <h2>Dashboard</h2>
+                        <p>Visão geral do almoxarifado</p>
+                    </div>
+
+                    <button
+                        class="btn btn-ghost"
+                        onclick="carregarDashboard()"
+                    >
+                        ↻ Atualizar
+                    </button>
+
+                </div>
+
+
+                <!-- ESTATÍSTICAS -->
+                <div class="stats-grid">
+
+                    <div class="stat">
+                        <span>📦</span>
+
+                        <div class="lbl">
+                            Produtos
+                        </div>
+
+                        <div
+                            class="val"
+                            id="s-produtos"
+                        >
+                            —
+                        </div>
+                    </div>
+
+
+                    <div class="stat">
+                        <span>📊</span>
+
+                        <div class="lbl">
+                            Itens em estoque
+                        </div>
+
+                        <div
+                            class="val"
+                            id="s-itens"
+                        >
+                            —
+                        </div>
+                    </div>
+
+
+                    <div class="stat">
+                        <span>⚠️</span>
+
+                        <div class="lbl">
+                            Estoque baixo
+                        </div>
+
+                        <div
+                            class="val"
+                            id="s-baixo"
+                        >
+                            —
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <!-- ALERTAS -->
+                <div class="card">
+
+                    <div class="card-head">
+                        <h3>Alertas de estoque</h3>
+                    </div>
+
+                    <div
+                        class="card-body"
+                        id="dash-alertas"
+                    ></div>
+
+                </div>
+
+            </section>
+
+
+            <!-- PRODUTOS -->
+            <section
+                id="pg-produtos"
+                class="secao"
+            >
+
+                <div class="pg-header">
+
+                    <div>
+                        <h2>Produtos</h2>
+                        <p>
+                            Cadastro dos materiais do almoxarifado
+                        </p>
+                    </div>
+
+                    <button
+                        class="btn btn-main"
+                        onclick="abrirProduto()"
+                    >
+                        + Novo produto
+                    </button>
+
+                </div>
+
+
+                <input
+                    id="busca-produto"
+                    class="busca"
+                    placeholder="Buscar por nome, categoria ou código"
+                    oninput="carregarProdutos()"
+                >
+
+
+                <div class="card">
+
+                    <div
+                        class="card-body tbl-wrap"
+                        id="tbl-produtos"
+                    ></div>
+
+                </div>
+
+            </section>
+
+
+            <!-- ESTOQUE -->
+            <section
+                id="pg-estoque"
+                class="secao"
+            >
+
+                <div class="pg-header">
+
+                    <div>
+                        <h2>Estoque</h2>
+                        <p>
+                            Consulte as quantidades atuais e os níveis mínimos
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="card">
+
+                    <div
+                        class="card-body tbl-wrap"
+                        id="tbl-estoque"
+                    ></div>
+
+                </div>
+
+            </section>
+
+
+            <!-- MOVIMENTAÇÕES -->
+            <section
+                id="pg-movimentacoes"
+                class="secao"
+            >
+
+                <div class="pg-header">
+
+                    <div>
+                        <h2>Movimentações</h2>
+                        <p>
+                            Registre entradas e saídas de materiais
+                        </p>
+                    </div>
+
+                    <button
+                        class="btn btn-main"
+                        onclick="abrirMovimentacao()"
+                    >
+                        + Nova movimentação
+                    </button>
+
+                </div>
+
+
+                <div class="card">
+
+                    <div
+                        class="card-body tbl-wrap"
+                        id="tbl-movimentacoes"
+                    ></div>
+
+                </div>
+
+            </section>
+
+
+            <!-- USUÁRIOS -->
+            <section
+                id="pg-usuarios"
+                class="secao"
+            >
+
+                <div class="pg-header">
+
+                    <div>
+                        <h2>Usuários</h2>
+                        <p>
+                            Usuários cadastrados no sistema
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="card">
+
+                    <div
+                        class="card-body tbl-wrap"
+                        id="tbl-usuarios"
+                    ></div>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+
+    <!-- MODAL DE PRODUTO -->
+    <div
+        id="m-produto"
+        class="modal-bg"
+    >
+
+        <div class="modal">
+
+            <h3 id="produto-titulo">
+                Novo produto
+            </h3>
+
+            <input
+                type="hidden"
+                id="produto-id"
+            >
+
+            <label>Nome</label>
+            <input id="produto-nome">
+
+            <label>Categoria</label>
+            <input id="produto-categoria">
+
+            <label>Código</label>
+            <input id="produto-codigo">
+
+            <label>Unidade</label>
+            <input
+                id="produto-unidade"
+                value="un"
+            >
+
+            <label>Quantidade</label>
+            <input
+                id="produto-quantidade"
+                type="number"
+                min="0"
+            >
+
+            <label>Estoque mínimo</label>
+            <input
+                id="produto-minimo"
+                type="number"
+                min="0"
+            >
+
+            <label>Localização</label>
+            <input
+                id="produto-localizacao"
+                placeholder="Ex.: Prateleira A1"
+            >
+
+
+            <div class="modal-actions">
+
+                <button
+                    class="btn btn-ghost"
+                    onclick="fechar('m-produto')"
+                >
+                    Cancelar
+                </button>
+
+                <button
+                    class="btn btn-main"
+                    onclick="salvarProduto()"
+                >
+                    Salvar
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- MODAL DE MOVIMENTAÇÃO -->
+    <div
+        id="m-mov"
+        class="modal-bg"
+    >
+
+        <div class="modal">
+
+            <h3>
+                Nova movimentação
+            </h3>
+
+            <label>Produto</label>
+
+            <select id="mov-produto"></select>
+
+
+            <label>Tipo</label>
+
+            <select id="mov-tipo">
+
+                <option value="entrada">
+                    Entrada
+                </option>
+
+                <option value="saida">
+                    Saída
+                </option>
+
+            </select>
+
+
+            <label>Quantidade</label>
+
+            <input
+                id="mov-qtd"
+                type="number"
+                min="1"
+            >
+
+
+            <label>Observação</label>
+
+            <input
+                id="mov-obs"
+                placeholder="Ex.: Compra, retirada, reposição..."
+            >
+
+
+            <div class="modal-actions">
+
+                <button
+                    class="btn btn-ghost"
+                    onclick="fechar('m-mov')"
+                >
+                    Cancelar
+                </button>
+
+                <button
+                    class="btn btn-main"
+                    onclick="salvarMovimentacao()"
+                >
+                    Registrar
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- TOAST -->
+    <div id="toast"></div>
+
+
+    <!-- JAVASCRIPT -->
+    <script src="script.js"></script>
+
+</body>
+
+</html>
